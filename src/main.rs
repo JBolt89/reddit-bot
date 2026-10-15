@@ -47,9 +47,14 @@ async fn event_handler(
         }
         serenity::FullEvent::Message { new_message } => {
             if new_message.author.bot {
-                new_message.react(ctx, Unicode(("⬆️").to_string())).await?;
-                new_message.react(ctx, Unicode(("⬇️").to_string())).await?;
-                new_message.react(ctx, Unicode(("❓").to_string())).await?;
+                if new_message.author.id == 655390915325591629 {
+                    new_message.react(ctx, Unicode(("❓").to_string())).await?;
+                }
+                else {
+                    new_message.react(ctx, Unicode(("⬆️").to_string())).await?;
+                    new_message.react(ctx, Unicode(("⬇️").to_string())).await?;
+                    new_message.react(ctx, Unicode(("❓").to_string())).await?;
+                }
             }
             else {
                 let ctx_clone = ctx.clone();
