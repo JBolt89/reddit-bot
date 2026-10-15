@@ -48,6 +48,7 @@ async fn event_handler(
         serenity::FullEvent::Message { new_message } => {
             if new_message.author.bot {
                 if new_message.author.id == 655390915325591629 {
+                    tokio::time::sleep(std::time::Duration::from_secs(2)).await;
                     new_message.react(ctx, Unicode(("❓").to_string())).await?;
                 }
                 else {
