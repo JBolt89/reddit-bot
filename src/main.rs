@@ -77,13 +77,14 @@ async fn bluebit_check(ctx: serenity::prelude::Context, msg: poise::serenity_pre
 
     if filtered.len() < 3 {
         println!("{}", filtered.len());
-        nmsg.reply(&ctx, "balnkbit detectored").await.expect("wtf {e}");
+        nmsg.reply(&ctx, "## ⚠️ balnkbit detectored\none or more of the reddit reactions are missing! oh noes!\n-# note: this may show up if you're too slow to reddit").await.expect("wtf {e}");
         return true;
     }
 
     for (i, r) in correct.iter().enumerate() {
         if *r != *filtered[i] {
-            nmsg.reply(&ctx, "bluebit detected i think").await.expect("huh");
+            let content = format!("## ⚠️ bluebit detected!\nreddit reactions: {} {} {}", filtered[0], filtered[1], filtered[2]);
+            nmsg.reply(&ctx, content).await.expect("huh");
             return true;
         }
     }
