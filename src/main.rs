@@ -13,7 +13,7 @@ type Context<'a> = poise::Context<'a, Data, Error>;
 #[tokio::main]
 async fn main() {
     let token = std::fs::read_to_string("token.txt").unwrap();
-    let intents = serenity::GatewayIntents::non_privileged();
+    let intents = serenity::GatewayIntents::all();
 
     let framework = poise::Framework::builder()
         .options(poise::FrameworkOptions {
@@ -46,6 +46,16 @@ async fn event_handler(
             println!("Logged in as {}", data_about_bot.user.name);
         }
         serenity::FullEvent::Message { new_message } => {
+            let mut alphabetic = new_message.content.clone();
+            alphabetic.retain(|c| c.is_alphanumeric());
+
+            if alphabetic
+                .to_lowercase()
+                .replace("1", "i")
+                .contains("pickle") {
+                    new_message.react(ctx, Unicode(("🥒").to_string())).await?;
+                }
+
             if new_message.author.bot {
                 if new_message.author.id == 655390915325591629 {
                     tokio::time::sleep(std::time::Duration::from_secs(2)).await;
@@ -74,15 +84,12 @@ async fn bluebit_check(ctx: serenity::prelude::Context, msg: poise::serenity_pre
     let reacts = &nmsg.reactions;
     let correct = [serenity::ReactionType::Unicode("⬆️".to_string()), serenity::ReactionType::Unicode("⬇️".to_string()), serenity::ReactionType::Unicode('❓'.to_string())];
 
-    println!("{}", reacts.len());
-
     let filtered: Vec<_> = reacts
       .into_iter()
       .filter_map(|r| correct.contains(&r.reaction_type).then_some(&r.reaction_type))
       .collect();
 
     if filtered.len() < 3 {
-        println!("{}", filtered.len());
         nmsg.reply(&ctx, "## ⚠️ balnkbit detectored\none or more of the reddit reactions are missing! oh noes!\n-# note: this may show up if you're too slow to reddit").await.expect("wtf {e}");
         return true;
     }
