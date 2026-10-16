@@ -4,6 +4,9 @@ mod commands {
     pub mod tests {
         pub mod ping;
     }
+    pub mod owner_tools {
+        pub mod react;
+    }
 }
 
 struct Data {} // User data, which is stored and accessible in all command invocations
@@ -17,7 +20,7 @@ async fn main() {
 
     let framework = poise::Framework::builder()
         .options(poise::FrameworkOptions {
-            commands: vec![commands::tests::ping::ping()],
+            commands: vec![commands::tests::ping::ping(), commands::owner_tools::react::react()],
             event_handler: |framework, event| Box::pin(event_handler(framework, event)),
             ..Default::default()
         })
@@ -71,6 +74,9 @@ async fn event_handler(
                 let ctx_clone = ctx.clone();
                 let msg_clone = new_message.clone();
                 tokio::spawn(async move {bluebit_check(ctx_clone, msg_clone).await});
+                let ctx_clone = ctx.clone();
+                let msg_clone = new_message.clone();
+                tokio::spawn(nullscape_check(ctx_clone, msg_clone));
             }
         }
         _ => {}
@@ -103,4 +109,11 @@ async fn bluebit_check(ctx: serenity::prelude::Context, msg: poise::serenity_pre
     }
 
     return false;
+}
+
+async fn nullscape_check(ctx: serenity::prelude::Context, msg: poise::serenity_prelude::Message) {
+    let references = ["null", "scape", "mart", "baby", "celest", "flame", "bell", "symphony", "husk", "insurmountable", "abyss", "decay", "spring", "missile", "icbm", "flesh", "operator", "guardian", "tele", "greed", "purg", "nothing", "colon", "cadence", "sigil", "scrap", "random", "???", "ponder", "nil", "catalyst", "curse", "enemy", "upgrade", "greater", "dive", "charge", "spirit", "grapple", "glide", "wanted", "prisoner", "altar", "matrix", "swiftness", "paycheck", "medal", "esp", "belt", "wing", "trip", "shark", "tail", "gift", "blossom", "bloom", "fall", "boom", "panic", "shield", "shoe", "drown", "business", "run", "tile", "collapse", "gold", "mine", "chaos", "beacon", "patch", "chance", "protect", "pure", "razor", "sub", "space", "i guess bro", "ig bro", "votekick", "its time", "it's time", "operate", "bitter", "cease", "silence", "bound", "echo", "adrenaline", "pass", "mirage", "oblivion", "jackpot", "fragile", "trauma", "lap", "camo", "stairs", "void"];
+    if references.iter().any(|s| msg.content.contains(s)) {
+        msg.react(ctx, serenity::ReactionType::try_from("<:SubspaceTripmine:1560623715861926030>").unwrap()).await.expect("thing");
+    }
 }
