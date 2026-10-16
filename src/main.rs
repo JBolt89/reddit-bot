@@ -7,6 +7,9 @@ mod commands {
     pub mod owner_tools {
         pub mod react;
     }
+    pub mod misc {
+        pub mod convert_base;
+    }
 }
 
 struct Data {} // User data, which is stored and accessible in all command invocations
@@ -20,7 +23,7 @@ async fn main() {
 
     let framework = poise::Framework::builder()
         .options(poise::FrameworkOptions {
-            commands: vec![commands::tests::ping::ping(), commands::owner_tools::react::react()],
+            commands: vec![commands::tests::ping::ping(), commands::owner_tools::react::react(), commands::misc::convert_base::convert_base()],
             event_handler: |framework, event| Box::pin(event_handler(framework, event)),
             ..Default::default()
         })
