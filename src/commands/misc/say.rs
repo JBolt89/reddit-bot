@@ -8,6 +8,15 @@ pub async fn say(
     #[description = "The text for the bot to say."] text: String,
     #[description = "OPTIONAL: The channel to say it in."] channel: Option<serenity::Channel>,
 ) -> Result<(), Error> {
+    if ctx.author().has_role(ctx, 1530571157651329054, 1544982028515282964).await.unwrap() {
+        ctx.send(
+            poise::CreateReply::default()
+                .content("# __**no**__")
+                .ephemeral(true)
+        ).await?;
+        return Ok(());
+    }
+
     let channel_target: serenity::ChannelId;
 
     match channel {
