@@ -9,6 +9,7 @@ mod commands {
     }
     pub mod misc {
         pub mod convert_base;
+        pub mod base64_command;
     }
 }
 
@@ -23,7 +24,7 @@ async fn main() {
 
     let framework = poise::Framework::builder()
         .options(poise::FrameworkOptions {
-            commands: vec![commands::tests::ping::ping(), commands::owner_tools::react::react(), commands::misc::convert_base::convert_base()],
+            commands: vec![commands::tests::ping::ping(), commands::owner_tools::react::react(), commands::misc::convert_base::convert_base(), commands::misc::base64_command::base64()],
             event_handler: |framework, event| Box::pin(event_handler(framework, event)),
             ..Default::default()
         })

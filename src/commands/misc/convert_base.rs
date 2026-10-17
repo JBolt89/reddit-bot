@@ -12,7 +12,7 @@ pub enum Bases {
 }
 
 /// Converts a number to a different base.
-#[poise::command(slash_command, prefix_command, owners_only)]
+#[poise::command(slash_command, prefix_command)]
 pub async fn convert_base(
     ctx: Context<'_>,
     #[description = "The number to convert."] number: String,
