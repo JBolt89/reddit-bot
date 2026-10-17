@@ -18,7 +18,8 @@ pub async fn convert_base(
     #[description = "The number to convert."] number: String,
     #[description = "The base to convert from."] convert_from: Bases,
     #[description = "The base to convert to."] convert_to: Bases,
-    #[description = "Whether the message is ephemeral or not"] ephemeral: Option<bool>,
+    #[description = "Whether the message is ephemeral (only visible to you) or not"]
+    ephemeral: Option<bool>,
 ) -> Result<(), Error> {
     let converted = match convert_from {
         Bases::Decimal => i64::from_str_radix(&number, 10).unwrap(),
@@ -59,7 +60,7 @@ pub async fn convert_base(
             ctx.send(
                 poise::CreateReply::default()
                     .content(format!(
-                        "{} ({}) in {} is {:#018x} (leading 0s as it's i64)",
+                        "{} ({}) in {} is {:#018x} (leading 0s as it's 64 bit number)",
                         number,
                         convert_from.name(),
                         convert_to.name(),

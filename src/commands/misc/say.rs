@@ -1,5 +1,5 @@
-use crate::{Context, Error};
-use poise::serenity_prelude::{self as serenity};
+use crate::{Context, Error, RTOC_GUILD, TBC_ALT_ROLE};
+use poise::serenity_prelude as serenity;
 
 /// Makes the bot send a message!
 #[poise::command(slash_command, prefix_command)]
@@ -8,12 +8,18 @@ pub async fn say(
     #[description = "The text for the bot to say."] text: String,
     #[description = "OPTIONAL: The channel to say it in."] channel: Option<serenity::Channel>,
 ) -> Result<(), Error> {
-    if ctx.author().has_role(ctx, 1530571157651329054, 1544982028515282964).await.unwrap() {
+    if ctx
+        .author()
+        .has_role(ctx, RTOC_GUILD, TBC_ALT_ROLE)
+        .await
+        .unwrap()
+    {
         ctx.send(
             poise::CreateReply::default()
                 .content("# __**no**__")
-                .ephemeral(true)
-        ).await?;
+                .ephemeral(true),
+        )
+        .await?;
         return Ok(());
     }
 
