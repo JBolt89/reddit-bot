@@ -10,6 +10,7 @@ mod commands {
     pub mod misc {
         pub mod base64_command;
         pub mod convert_base;
+        pub mod say;
     }
 }
 
@@ -29,6 +30,7 @@ async fn main() {
                 commands::owner_tools::react::react(),
                 commands::misc::convert_base::convert_base(),
                 commands::misc::base64_command::base64(),
+                commands::misc::say::say(),
             ],
             event_handler: |framework, event| Box::pin(event_handler(framework, event)),
             ..Default::default()
