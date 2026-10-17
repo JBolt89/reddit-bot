@@ -17,7 +17,8 @@ pub async fn convert_base(
     ctx: Context<'_>,
     #[description = "The number to convert."] number: String,
     #[description = "The base to convert from."] convert_from: Bases,
-    #[description = "The base to convert to."] convert_to: Bases
+    #[description = "The base to convert to."] convert_to: Bases,
+    #[description = "Whether the message is ephemeral or not"] ephemeral: Option<bool>
 ) -> Result<(), Error> {
     let converted = match convert_from {
         Bases::Decimal => i64::from_str_radix(&number, 10).unwrap(),
@@ -27,13 +28,19 @@ pub async fn convert_base(
 
     match convert_to {
         Bases::Decimal => {
-            ctx.say(format!("{} ({}) in {} is {}", number, convert_from.name(), convert_to.name(), converted)).await?;
+            ctx.send(poise::CreateReply::default()
+                .content(format!("{} ({}) in {} is {}", number, convert_from.name(), convert_to.name(), converted))
+                .ephemeral(ephemeral.unwrap())).await?;
         },
         Bases::Binary => {
-            ctx.say(format!("{} ({}) in {} is {:#b}", number, convert_from.name(), convert_to.name(), converted)).await?;
+            ctx.send(poise::CreateReply::default()
+                .content(format!("{} ({}) in {} is {:#b}", number, convert_from.name(), convert_to.name(), converted))
+                .ephemeral(ephemeral.unwrap())).await?;
         },
         Bases::Hex => {
-            ctx.say(format!("{} ({}) in {} is {:#018x} (leading 0s as it's i64)", number, convert_from.name(), convert_to.name(), converted)).await?;
+            ctx.send(poise::CreateReply::default()
+                .content(format!("{} ({}) in {} is {:#018x} (leading 0s as it's i64)", number, convert_from.name(), convert_to.name(), converted))
+                .ephemeral(ephemeral.unwrap())).await?;
         },
     }
     Ok(())
