@@ -1,5 +1,5 @@
 use crate::{Context, Error};
-use base64::{Engine as _, engine::{general_purpose}};
+use base64::{Engine as _, engine::general_purpose};
 
 #[derive(poise::ChoiceParameter)]
 pub enum Choices {
@@ -14,18 +14,21 @@ pub enum Choices {
 pub async fn base64(
     ctx: Context<'_>,
     #[description = "Endcode or decode the input"] choice: Choices,
-    #[description = "The input string"] input: String
+    #[description = "The input string"] input: String,
 ) -> Result<(), Error> {
     match choice {
-        Choices::Encode => { 
+        Choices::Encode => {
             let encoded: String = general_purpose::STANDARD.encode(input);
-            ctx.send(poise::CreateReply::default()
-                                .content(encoded)).await?;
+            ctx.send(poise::CreateReply::default().content(encoded))
+                .await?;
         }
         Choices::Decode => {
-            let decoded: String = general_purpose::STANDARD.decode(input).unwrap().try_into()?;
-            ctx.send(poise::CreateReply::default()
-                                .content(decoded)).await?;
+            let decoded: String = general_purpose::STANDARD
+                .decode(input)
+                .unwrap()
+                .try_into()?;
+            ctx.send(poise::CreateReply::default().content(decoded))
+                .await?;
         }
     }
     Ok(())
