@@ -18,13 +18,30 @@ pub async fn convert_base(
     #[description = "The number to convert."] number: String,
     #[description = "The base to convert from."] convert_from: Bases,
     #[description = "The base to convert to."] convert_to: Bases,
-    #[description = "Whether the message is ephemeral (only visible to you) or not"]
+    #[description = "Whether the message is ephemeral (only visible to you) or not. Defaults to false."]
     ephemeral: Option<bool>,
 ) -> Result<(), Error> {
     let converted = match convert_from {
-        Bases::Decimal => i64::from_str_radix(&number, 10).unwrap(),
-        Bases::Binary => i64::from_str_radix(&number, 2).unwrap(),
-        Bases::Hex => i64::from_str_radix(&number, 16).unwrap(),
+        Bases::Decimal => number.parse(),
+        Bases::Binary => i64::from_str_radix(&number, 2),
+        Bases::Hex => i64::from_str_radix(&number, 16),
+    };
+    let converted = match converted {
+        Ok(converted) => converted,
+        Err(e) => {
+            ctx.send(
+                poise::CreateReply::default()
+                    .content(format!(
+                        "
+                        {e}\
+                        you entered an invalid number you idiot\
+                    "
+                    ))
+                    .ephemeral(true),
+            )
+            .await?;
+            return Ok(());
+        }
     };
 
     match convert_to {
@@ -38,7 +55,7 @@ pub async fn convert_base(
                         convert_to.name(),
                         converted
                     ))
-                    .ephemeral(ephemeral.unwrap()),
+                    .ephemeral(ephemeral.unwrap_or(false)),
             )
             .await?;
         }
@@ -52,7 +69,7 @@ pub async fn convert_base(
                         convert_to.name(),
                         converted
                     ))
-                    .ephemeral(ephemeral.unwrap()),
+                    .ephemeral(ephemeral.unwrap_or(false)),
             )
             .await?;
         }
@@ -66,7 +83,7 @@ pub async fn convert_base(
                         convert_to.name(),
                         converted
                     ))
-                    .ephemeral(ephemeral.unwrap()),
+                    .ephemeral(ephemeral.unwrap_or(false)),
             )
             .await?;
         }

@@ -12,6 +12,7 @@ mod commands {
     pub mod misc {
         pub mod base64_command;
         pub mod convert_base;
+        pub mod random_number;
         pub mod say;
     }
 }
@@ -47,7 +48,7 @@ type Context<'a> = poise::Context<'a, Data, Error>;
 
 #[tokio::main]
 async fn main() {
-    let token = std::fs::read_to_string("token.txt").unwrap();
+    let token = std::fs::read_to_string("token.txt").expect("token.txt file should exist");
     let intents = serenity::GatewayIntents::all();
 
     let framework = poise::Framework::builder()
@@ -55,6 +56,7 @@ async fn main() {
             commands: vec![
                 commands::tests::ping::ping(),
                 commands::owner_tools::react::react(),
+                commands::misc::random_number::random_number(),
                 commands::misc::convert_base::convert_base(),
                 commands::misc::base64_command::base64(),
                 commands::misc::say::say(),
@@ -150,7 +152,7 @@ async fn bluebit_check(
     let correct = [up_arrow!(), down_arrow!(), ques_mark!()];
 
     let filtered: Vec<_> = reacts
-        .into_iter()
+        .iter()
         .filter_map(|r| {
             correct
                 .contains(&r.reaction_type)
@@ -189,7 +191,7 @@ async fn bluebit_check(
         }
     }
 
-    return false;
+    false
 }
 
 async fn nullscape_check(ctx: serenity::prelude::Context, msg: poise::serenity_prelude::Message) {

@@ -13,7 +13,7 @@ pub enum Choices {
 #[poise::command(slash_command, prefix_command)]
 pub async fn base64(
     ctx: Context<'_>,
-    #[description = "Endcode or decode the input"] choice: Choices,
+    #[description = "Encode or decode the input"] choice: Choices,
     #[description = "The input string"] input: String,
 ) -> Result<(), Error> {
     match choice {

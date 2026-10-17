@@ -8,12 +8,7 @@ pub async fn say(
     #[description = "The text for the bot to say."] text: String,
     #[description = "OPTIONAL: The channel to say it in."] channel: Option<serenity::Channel>,
 ) -> Result<(), Error> {
-    if ctx
-        .author()
-        .has_role(ctx, RTOC_GUILD, TBC_ALT_ROLE)
-        .await
-        .unwrap()
-    {
+    if ctx.author().has_role(ctx, RTOC_GUILD, TBC_ALT_ROLE).await? {
         ctx.send(
             poise::CreateReply::default()
                 .content("# __**no**__")
@@ -23,12 +18,10 @@ pub async fn say(
         return Ok(());
     }
 
-    let channel_target: serenity::ChannelId;
-
-    match channel {
-        Some(channel) => channel_target = channel.id(),
-        None => channel_target = ctx.channel_id(),
-    }
+    let channel_target: serenity::ChannelId = match channel {
+        Some(channel) => channel.id(),
+        None => ctx.channel_id(),
+    };
 
     channel_target
         .send_message(ctx.http(), serenity::CreateMessage::new().content(text))

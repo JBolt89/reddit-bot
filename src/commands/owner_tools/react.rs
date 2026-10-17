@@ -9,9 +9,9 @@ pub async fn react(
     #[description = "The emoji to react with"] reaction: String,
     #[description = "OPTIONAL: The channel the message is in"] channel: Option<serenity::Channel>,
 ) -> Result<(), Error> {
-    if channel.is_some() {
+    if let Some(channel) = channel {
         let msgid: u64 = message.trim().parse()?;
-        let msg = channel.unwrap().id().message(ctx, msgid).await?;
+        let msg = channel.id().message(ctx, msgid).await?;
         let reaction = serenity::ReactionType::try_from(reaction)?;
         msg.react(ctx, reaction).await?;
         ctx.send(
