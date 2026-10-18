@@ -9,7 +9,7 @@ pub async fn ask_jarvis(
 ) -> Result<(), Error> {
     let phrase = JARVIS_PHRASES[rand::random_range(0..JARVIS_PHRASES.len())];
 
-    ctx.say(format!("Q: {}:\nA: {}", question, phrase)).await?;
+    ctx.say(format!("Q: {}\nA: {}", question, phrase)).await?;
 
     Ok(())
 }
