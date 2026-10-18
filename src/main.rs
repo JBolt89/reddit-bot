@@ -1,4 +1,4 @@
-use poise::serenity_prelude::{self as serenity, futures::StreamExt}; 
+use poise::serenity_prelude::{self as serenity, futures::StreamExt};
 // GGR: for some reason i couldnt use futures::StreamExt without doing this
 // tried searching for a way but i couldnt find one so its this now lmao
 
@@ -19,6 +19,7 @@ mod commands {
     }
     pub mod jarvis {
         pub mod ask_jarvis;
+        pub mod jarvis_decide;
         pub mod jarvis_phrases;
     }
 }
@@ -68,6 +69,7 @@ async fn main() {
                 commands::misc::base64_command::base64(),
                 commands::misc::say::say(),
                 commands::jarvis::ask_jarvis::ask_jarvis(),
+                commands::jarvis::jarvis_decide::jarvis_decide(),
             ],
             event_handler: |framework, event| Box::pin(event_handler(framework, event)),
             ..Default::default()
@@ -217,24 +219,45 @@ async fn nullscape_check(ctx: serenity::prelude::Context, msg: poise::serenity_p
 }
 
 async fn anti_cablab(ctx: serenity::prelude::Context, msg: poise::serenity_prelude::Message) {
-    if msg.author.has_role(&ctx, RTOC_GUILD, TBC_ALT_ROLE).await.expect("error occurred checking roles") && msg.content.contains("ablab") {
-        let mut members = serenity::GuildId::from(RTOC_GUILD).members_iter(&ctx.http).boxed();
+    if msg
+        .author
+        .has_role(&ctx, RTOC_GUILD, TBC_ALT_ROLE)
+        .await
+        .expect("error occurred checking roles")
+        && msg.content.contains("ablab")
+    {
+        let mut members = serenity::GuildId::from(RTOC_GUILD)
+            .members_iter(&ctx.http)
+            .boxed();
 
         while let Some(member) = members.next().await {
             match member {
                 Ok(mut member) => {
-                    let timestamp = serenity::Timestamp::from_unix_timestamp(serenity::Timestamp::now().unix_timestamp() + 60);
+                    let timestamp = serenity::Timestamp::from_unix_timestamp(
+                        serenity::Timestamp::now().unix_timestamp() + 60,
+                    );
 
                     match timestamp {
                         Err(error) => eprintln!("error occurred calculating timestamp: {error}"),
                         Ok(timestamp) => {
-                            member.disable_communication_until_datetime(&ctx, timestamp).await.expect("error occurred timing out user");
-                            member.user.direct_message(&ctx, serenity::CreateMessage::new().content("SHUT THE FUCK UP")).await.expect("error occurred DMing user");
+                            member
+                                .disable_communication_until_datetime(&ctx, timestamp)
+                                .await
+                                .expect("error occurred timing out user");
+                            member
+                                .user
+                                .direct_message(
+                                    &ctx,
+                                    serenity::CreateMessage::new().content("SHUT THE FUCK UP"),
+                                )
+                                .await
+                                .expect("error occurred DMing user");
                         }
                     }
-                },
-                Err(error) => eprintln!("error occurred reading members: {error}")
+                }
+                Err(error) => eprintln!("error occurred reading members: {error}"),
             }
         }
     }
 }
+
