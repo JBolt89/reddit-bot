@@ -20,6 +20,7 @@ mod commands {
     }
     pub mod jarvis {
         pub mod ask_jarvis;
+        mod decider;
         pub mod jarvis_decide;
         pub mod jarvis_phrases;
     }
