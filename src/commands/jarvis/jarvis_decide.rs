@@ -1,6 +1,6 @@
 use crate::{Context, Error};
 
-/// Pong!
+/// Let our lord Jarvis make a decision for you!
 #[poise::command(slash_command, prefix_command)]
 pub async fn jarvis_decide(
     ctx: Context<'_>,
