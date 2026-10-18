@@ -1,4 +1,6 @@
-use poise::serenity_prelude as serenity;
+use poise::serenity_prelude::{self as serenity, futures::StreamExt}; 
+// GGR: for some reason i couldnt use futures::StreamExt without doing this
+// tried searching for a way but i couldnt find one so its this now lmao
 
 use crate::ns_references::NULLSCAPE_REFERENCES;
 
@@ -135,6 +137,9 @@ async fn event_handler(
                 let ctx_clone = ctx.clone();
                 let msg_clone = new_message.clone();
                 tokio::spawn(nullscape_check(ctx_clone, msg_clone));
+                let ctx_clone = ctx.clone();
+                let msg_clone = new_message.clone();
+                tokio::spawn(anti_cablab(ctx_clone, msg_clone));
             }
         }
         _ => {}
@@ -202,5 +207,28 @@ async fn nullscape_check(ctx: serenity::prelude::Context, msg: poise::serenity_p
         )
         .await
         .expect("should have been able to react subspace tripmine");
+    }
+}
+
+async fn anti_cablab(ctx: serenity::prelude::Context, msg: poise::serenity_prelude::Message) {
+    if msg.author.has_role(&ctx, RTOC_GUILD, TBC_ALT_ROLE).await.expect("error occurred checking roles") && msg.content.contains("ablab") {
+        let mut members = serenity::GuildId::from(RTOC_GUILD).members_iter(&ctx.http).boxed();
+
+        while let Some(member) = members.next().await {
+            match member {
+                Ok(mut member) => {
+                    let timestamp = serenity::Timestamp::from_unix_timestamp(serenity::Timestamp::now().unix_timestamp() + 60);
+
+                    match timestamp {
+                        Err(error) => eprintln!("error occurred calculating timestamp: {error}"),
+                        Ok(timestamp) => {
+                            member.disable_communication_until_datetime(&ctx, timestamp).await.expect("error occurred timing out user");
+                            member.user.direct_message(&ctx, serenity::CreateMessage::new().content("SHUT THE FUCK UP")).await.expect("error occurred DMing user");
+                        }
+                    }
+                },
+                Err(error) => eprintln!("error occurred reading members: {error}")
+            }
+        }
     }
 }

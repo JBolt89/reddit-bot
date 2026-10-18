@@ -26,3 +26,5 @@ pub async fn react(
 
 // TRC: this is evil as fuck, restricting a command that lets you upvote your own message to only
 //      yourself? genuinely evil. just use a normal alt damnit
+
+// GGR: i wasnt gonna use it for that purpose lol

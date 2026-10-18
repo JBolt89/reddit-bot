@@ -12,7 +12,7 @@ pub async fn say(
         ctx.send(
             poise::CreateReply::default()
                 .content("# __**no**__")
-                .ephemeral(true),
+                .ephemeral(false),
         )
         .await?;
         return Ok(());
