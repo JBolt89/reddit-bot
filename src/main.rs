@@ -17,7 +17,12 @@ mod commands {
         pub mod random_number;
         pub mod say;
     }
+    pub mod jarvis {
+        pub mod ask_jarvis;
+        pub mod jarvis_phrases;
+    }
 }
+
 mod ns_references;
 
 #[cfg(test)]
@@ -62,6 +67,7 @@ async fn main() {
                 commands::misc::convert_base::convert_base(),
                 commands::misc::base64_command::base64(),
                 commands::misc::say::say(),
+                commands::jarvis::ask_jarvis::ask_jarvis(),
             ],
             event_handler: |framework, event| Box::pin(event_handler(framework, event)),
             ..Default::default()
