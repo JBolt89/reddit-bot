@@ -9,6 +9,7 @@ mod commands {
         pub mod ping;
     }
     pub mod owner_tools {
+        pub mod dm_user;
         pub mod react;
     }
     pub mod misc {
@@ -64,6 +65,7 @@ async fn main() {
             commands: vec![
                 commands::tests::ping::ping(),
                 commands::owner_tools::react::react(),
+                commands::owner_tools::dm_user::dm_user(),
                 commands::misc::random_number::random_number(),
                 commands::misc::convert_base::convert_base(),
                 commands::misc::base64_command::base64(),
@@ -260,4 +262,3 @@ async fn anti_cablab(ctx: serenity::prelude::Context, msg: poise::serenity_prelu
         }
     }
 }
-
