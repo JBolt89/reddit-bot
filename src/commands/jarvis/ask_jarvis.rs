@@ -7,9 +7,15 @@ pub async fn ask_jarvis(
     ctx: Context<'_>,
     #[description = "The question to ask Jarvis!"] question: String
 ) -> Result<(), Error> {
-    let phrase = JARVIS_PHRASES[rand::random_range(0..JARVIS_PHRASES.len())];
+    
+    let mut digest = 0_u32;
 
-    ctx.say(format!("Q: {}\nA: {}", question, phrase)).await?;
+    for c in question.chars() {
+        digest ^= c as u32;
+        digest <<= 5;
+    }
+
+    ctx.say(format!("Q: {}\nA: {}", question, JARVIS_PHRASES[digest as usize % JARVIS_PHRASES.len()])).await?;
 
     Ok(())
 }
