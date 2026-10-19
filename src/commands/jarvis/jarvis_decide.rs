@@ -7,10 +7,12 @@ pub async fn jarvis_decide(
     #[description = "The first choice."] choice1: String,
     #[description = "The second choice."] choice2: String,
 ) -> Result<(), Error> {
-    let full_string = format!("{}{}", choice1, choice2);
+    let user_id = ctx.author().id;
+    let full_string = format!("{}{}{user_id}", choice1, choice2);
+    let decision = [&choice1, &choice2][decide(full_string.as_bytes(), 2) as usize];
     ctx.say(format!(
-        "i think {}",
-        [choice1, choice2][decide(full_string.as_bytes(), 2) as usize]
+        "Q: should I {choice1} or {choice2}?\n\
+         A: i think you should {decision}",
     ))
     .await?;
     Ok(())
