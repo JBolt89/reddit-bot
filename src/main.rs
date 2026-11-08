@@ -163,7 +163,13 @@ async fn bluebit_check(
     msg: poise::serenity_prelude::Message,
 ) -> bool {
     tokio::time::sleep(std::time::Duration::from_secs(8)).await;
-    let nmsg = msg.channel_id.message(&ctx, msg.id).await.unwrap();
+    let nmsg = match msg.channel_id.message(&ctx, msg.id).await {
+        Ok(tmsg) => tmsg,
+        Err(e) => {
+            eprintln!("failed to get message, most likely user deleted it. error: {e}");
+            return false;
+        }
+    };
     let reacts = &nmsg.reactions;
     let correct = [up_arrow!(), down_arrow!(), ques_mark!()];
 
@@ -177,16 +183,24 @@ async fn bluebit_check(
         .collect();
 
     if filtered.len() < 3 {
-        nmsg.reply(
-            &ctx,
+        let mut filter_string = String::new();
+
+        for react in filtered {
+            filter_string = format!("{}{}", filter_string, react);
+        }
+
+        let content = format!(
             "\
                 ## ⚠️ balnkbit detectored\n\
                 one or more of the reddit reactions are missing! oh noes!\n\
+                reddit reactions: {}\n\
                 -# note: this may show up if you're too slow to reddit\
             ",
-        )
-        .await
-        .expect("should have been able to send blankbit notifier message");
+            filter_string
+        );
+        nmsg.reply_ping(&ctx, content)
+            .await
+            .expect("should have been able to send blankbit notifier message");
         return true;
     }
 
@@ -200,7 +214,7 @@ async fn bluebit_check(
                 ",
                 filtered[0], filtered[1], filtered[2]
             );
-            nmsg.reply(&ctx, content)
+            nmsg.reply_ping(&ctx, content)
                 .await
                 .expect("should have been able to send bluebit notifier message");
             return true;
