@@ -1,3 +1,5 @@
+use std::{collections::HashMap, sync::Mutex};
+
 use poise::serenity_prelude::{self as serenity, futures::StreamExt};
 // GGR: for some reason i couldnt use futures::StreamExt without doing this
 // tried searching for a way but i couldnt find one so its this now lmao
@@ -23,6 +25,9 @@ mod commands {
         mod decider;
         pub mod jarvis_decide;
         pub mod jarvis_phrases;
+    }
+    pub mod fun {
+        pub mod gamble;
     }
 }
 
@@ -51,7 +56,9 @@ const STARBOARD_BOT: u64 = 655390915325591629;
 const TBC_ALT_ROLE: u64 = 1544982028515282964;
 
 /// User data, which is stored and accessible in all command invocations
-struct Data {}
+struct Data {
+    money: Mutex<HashMap<u64, i64>>,
+}
 
 type Error = Box<dyn std::error::Error + Send + Sync>;
 type Context<'a> = poise::Context<'a, Data, Error>;
@@ -73,6 +80,8 @@ async fn main() {
                 commands::misc::say::say(),
                 commands::jarvis::ask_jarvis::ask_jarvis(),
                 commands::jarvis::jarvis_decide::jarvis_decide(),
+                commands::fun::gamble::gamble(),
+                commands::fun::gamble::gamble_seeded(),
             ],
             event_handler: |framework, event| Box::pin(event_handler(framework, event)),
             ..Default::default()
@@ -80,7 +89,9 @@ async fn main() {
         .setup(|ctx, _ready, framework| {
             Box::pin(async move {
                 poise::builtins::register_globally(ctx, &framework.options().commands).await?;
-                Ok(Data {})
+                Ok(Data {
+                    money: Mutex::new(HashMap::new()),
+                })
             })
         })
         .build();
@@ -122,6 +133,9 @@ async fn event_handler(
     match event {
         serenity::FullEvent::Ready { data_about_bot, .. } => {
             println!("Logged in as {}", data_about_bot.user.name);
+            ctx.set_activity(Some(serenity::ActivityData::watching(
+                "watching your redditification",
+            )));
         }
         serenity::FullEvent::Message { new_message } => {
             if new_message.content.to_lowercase() == "dumbass" {
@@ -250,8 +264,17 @@ async fn anti_cablab(ctx: serenity::prelude::Context, msg: poise::serenity_prelu
         while let Some(member) = members.next().await {
             match member {
                 Ok(mut member) => {
+                    if !member
+                        .user
+                        .has_role(&ctx, RTOC_GUILD, TBC_ALT_ROLE)
+                        .await
+                        .expect("error checking roles")
+                    {
+                        continue;
+                    }
+
                     let timestamp = serenity::Timestamp::from_unix_timestamp(
-                        serenity::Timestamp::now().unix_timestamp() + 60,
+                        serenity::Timestamp::now().unix_timestamp() + 300,
                     );
 
                     match timestamp {
@@ -261,14 +284,6 @@ async fn anti_cablab(ctx: serenity::prelude::Context, msg: poise::serenity_prelu
                                 .disable_communication_until_datetime(&ctx, timestamp)
                                 .await
                                 .expect("error occurred timing out user");
-                            member
-                                .user
-                                .direct_message(
-                                    &ctx,
-                                    serenity::CreateMessage::new().content("SHUT THE FUCK UP"),
-                                )
-                                .await
-                                .expect("error occurred DMing user");
                         }
                     }
                 }
