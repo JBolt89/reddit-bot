@@ -4,6 +4,7 @@ use poise::serenity_prelude::{self as serenity, futures::StreamExt};
 // GGR: for some reason i couldnt use futures::StreamExt without doing this
 // tried searching for a way but i couldnt find one so its this now lmao
 
+use crate::cablab_variants::CABLAB_VARIANTS;
 use crate::ns_references::NULLSCAPE_REFERENCES;
 
 mod commands {
@@ -17,6 +18,7 @@ mod commands {
     pub mod misc {
         pub mod base64_command;
         pub mod convert_base;
+        pub mod math;
         pub mod random_number;
         pub mod say;
     }
@@ -29,8 +31,12 @@ mod commands {
     pub mod fun {
         pub mod gamble;
     }
+    pub mod admin {
+        pub mod timeout_role;
+    }
 }
 
+mod cablab_variants;
 mod ns_references;
 
 #[cfg(test)]
@@ -50,6 +56,7 @@ def_reaction!(up_arrow!() = "⬆️");
 def_reaction!(down_arrow!() = "⬇️");
 def_reaction!(ques_mark!() = "❓");
 def_reaction!(pickle!() = "🥒");
+def_reaction!(warning!() = "⚠️");
 
 const RTOC_GUILD: u64 = 1530571157651329054;
 const STARBOARD_BOT: u64 = 655390915325591629;
@@ -78,10 +85,12 @@ async fn main() {
                 commands::misc::convert_base::convert_base(),
                 commands::misc::base64_command::base64(),
                 commands::misc::say::say(),
+                commands::misc::math::math(),
                 commands::jarvis::ask_jarvis::ask_jarvis(),
                 commands::jarvis::jarvis_decide::jarvis_decide(),
                 commands::fun::gamble::gamble(),
                 commands::fun::gamble::gamble_seeded(),
+                commands::admin::timeout_role::timeout_role(),
             ],
             event_handler: |framework, event| Box::pin(event_handler(framework, event)),
             ..Default::default()
@@ -134,7 +143,7 @@ async fn event_handler(
         serenity::FullEvent::Ready { data_about_bot, .. } => {
             println!("Logged in as {}", data_about_bot.user.name);
             ctx.set_activity(Some(serenity::ActivityData::watching(
-                "watching your redditification",
+                "your redditification",
             )));
         }
         serenity::FullEvent::Message { new_message } => {
@@ -189,18 +198,20 @@ async fn bluebit_check(
 
     let filtered: Vec<_> = reacts
         .iter()
-        .filter_map(|r| {
-            correct
-                .contains(&r.reaction_type)
-                .then_some(&r.reaction_type)
-        })
+        .filter(|r| correct.contains(&r.reaction_type))
         .collect();
+
+    let mut filter_string = String::new();
+
+    for react in &filtered {
+        filter_string = format!("{}{}", filter_string, react.reaction_type);
+    }
 
     if filtered.len() < 3 {
         let mut filter_string = String::new();
 
         for react in filtered {
-            filter_string = format!("{}{}", filter_string, react);
+            filter_string = format!("{}{}", filter_string, react.reaction_type);
         }
 
         let content = format!(
@@ -208,6 +219,7 @@ async fn bluebit_check(
                 ## ⚠️ balnkbit detectored\n\
                 one or more of the reddit reactions are missing! oh noes!\n\
                 reddit reactions: {}\n\
+                pings: 
                 -# note: this may show up if you're too slow to reddit\
             ",
             filter_string
@@ -219,14 +231,14 @@ async fn bluebit_check(
     }
 
     for (i, r) in correct.iter().enumerate() {
-        if *r != *filtered[i] {
+        if *r != filtered[i].reaction_type {
             let content = format!(
                 "\
                     ## ⚠️ bleubit detectored!\n\
-                    reddit reactions: {}{}{}\n\
+                    reddit reactions: {}\n\
                     -# note: this may show up if your internet is bad\
                 ",
-                filtered[0], filtered[1], filtered[2]
+                filter_string
             );
             nmsg.reply_ping(&ctx, content)
                 .await
@@ -239,7 +251,12 @@ async fn bluebit_check(
 }
 
 async fn nullscape_check(ctx: serenity::prelude::Context, msg: poise::serenity_prelude::Message) {
-    if NULLSCAPE_REFERENCES.iter().any(|s| msg.content.contains(s)) {
+    let refs = NULLSCAPE_REFERENCES
+        .iter()
+        .filter(|s| msg.content.to_lowercase().contains(*s))
+        .count();
+
+    if refs > 1 {
         msg.react(
             ctx,
             serenity::ReactionType::try_from("<:SubspaceTripmine:1560623715861926030>").unwrap(),
@@ -250,12 +267,20 @@ async fn nullscape_check(ctx: serenity::prelude::Context, msg: poise::serenity_p
 }
 
 async fn anti_cablab(ctx: serenity::prelude::Context, msg: poise::serenity_prelude::Message) {
+    let contains_cablab = CABLAB_VARIANTS
+        .iter()
+        .any(|s| msg.content.to_lowercase().contains(s));
+
+    if contains_cablab {
+        msg.react(&ctx, warning!()).await.expect("couldnt react :(");
+    }
+
     if msg
         .author
         .has_role(&ctx, RTOC_GUILD, TBC_ALT_ROLE)
         .await
         .expect("error occurred checking roles")
-        && msg.content.contains("ablab")
+        && contains_cablab
     {
         let mut members = serenity::GuildId::from(RTOC_GUILD)
             .members_iter(&ctx.http)
@@ -274,7 +299,7 @@ async fn anti_cablab(ctx: serenity::prelude::Context, msg: poise::serenity_prelu
                     }
 
                     let timestamp = serenity::Timestamp::from_unix_timestamp(
-                        serenity::Timestamp::now().unix_timestamp() + 300,
+                        serenity::Timestamp::now().unix_timestamp() + 1800,
                     );
 
                     match timestamp {
