@@ -10,7 +10,7 @@ pub async fn timeout_role(
     ctx: Context<'_>,
     #[description = "The role to timeout"] role: serenity::Role,
     #[description = "The duration to timeout, in seconds. Can't be longer than 14 days I thimk."]
-    duration: i32,
+    duration: i64,
 ) -> Result<(), Error> {
     if !ctx
         .author()
@@ -32,6 +32,10 @@ pub async fn timeout_role(
         .members_iter(ctx_http)
         .boxed();
 
+    let timestamp = serenity::Timestamp::from_unix_timestamp(
+        serenity::Timestamp::now().unix_timestamp() + duration,
+    );
+
     while let Some(member) = members.next().await {
         match member {
             Ok(mut member) => {
@@ -44,15 +48,11 @@ pub async fn timeout_role(
                     continue;
                 }
 
-                let timestamp = serenity::Timestamp::from_unix_timestamp(
-                    serenity::Timestamp::now().unix_timestamp() + duration as i64,
-                );
-
-                match timestamp {
-                    Err(error) => eprintln!("error occurred calculating timestamp: {error}"),
+                match &timestamp {
+                    Err(error) => eprintln!("error occurred calculating timestamp: {}", error),
                     Ok(timestamp) => {
                         member
-                            .disable_communication_until_datetime(&ctx, timestamp)
+                            .disable_communication_until_datetime(&ctx, *timestamp)
                             .await
                             .expect("error occurred timing out user");
                     }

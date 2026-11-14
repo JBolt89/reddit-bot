@@ -1,11 +1,10 @@
 use std::{collections::HashMap, sync::Mutex};
 
-use poise::serenity_prelude::{self as serenity, futures::StreamExt};
+use poise::serenity_prelude as serenity;
 // GGR: for some reason i couldnt use futures::StreamExt without doing this
 // tried searching for a way but i couldnt find one so its this now lmao
 
 use crate::cablab_variants::CABLAB_VARIANTS;
-use crate::ns_references::NULLSCAPE_REFERENCES;
 
 mod commands {
     pub mod tests {
@@ -36,6 +35,12 @@ mod commands {
     }
 }
 
+mod event_functions {
+    pub mod anti_cablab;
+    pub mod bluebit_check;
+    pub mod nullscape_check;
+}
+
 mod cablab_variants;
 mod ns_references;
 
@@ -56,11 +61,11 @@ def_reaction!(up_arrow!() = "⬆️");
 def_reaction!(down_arrow!() = "⬇️");
 def_reaction!(ques_mark!() = "❓");
 def_reaction!(pickle!() = "🥒");
-def_reaction!(warning!() = "⚠️");
 
 const RTOC_GUILD: u64 = 1530571157651329054;
 const STARBOARD_BOT: u64 = 655390915325591629;
 const TBC_ALT_ROLE: u64 = 1544982028515282964;
+const PIH_CHANNEL: u64 = 1571059108835106866;
 
 /// User data, which is stored and accessible in all command invocations
 struct Data {
@@ -167,153 +172,22 @@ async fn event_handler(
             } else {
                 let ctx_clone = ctx.clone();
                 let msg_clone = new_message.clone();
-                tokio::spawn(async move { bluebit_check(ctx_clone, msg_clone).await });
+                tokio::spawn(event_functions::bluebit_check::bluebit_check(
+                    ctx_clone, msg_clone,
+                ));
                 let ctx_clone = ctx.clone();
                 let msg_clone = new_message.clone();
-                tokio::spawn(nullscape_check(ctx_clone, msg_clone));
+                tokio::spawn(event_functions::nullscape_check::nullscape_check(
+                    ctx_clone, msg_clone,
+                ));
                 let ctx_clone = ctx.clone();
                 let msg_clone = new_message.clone();
-                tokio::spawn(anti_cablab(ctx_clone, msg_clone));
+                tokio::spawn(event_functions::anti_cablab::anti_cablab(
+                    ctx_clone, msg_clone,
+                ));
             }
         }
         _ => {}
     }
     Ok(())
-}
-
-async fn bluebit_check(
-    ctx: serenity::prelude::Context,
-    msg: poise::serenity_prelude::Message,
-) -> bool {
-    tokio::time::sleep(std::time::Duration::from_secs(8)).await;
-    let nmsg = match msg.channel_id.message(&ctx, msg.id).await {
-        Ok(tmsg) => tmsg,
-        Err(e) => {
-            eprintln!("failed to get message, most likely user deleted it. error: {e}");
-            return false;
-        }
-    };
-    let reacts = &nmsg.reactions;
-    let correct = [up_arrow!(), down_arrow!(), ques_mark!()];
-
-    let filtered: Vec<_> = reacts
-        .iter()
-        .filter(|r| correct.contains(&r.reaction_type))
-        .collect();
-
-    let mut filter_string = String::new();
-
-    for react in &filtered {
-        filter_string = format!("{}{}", filter_string, react.reaction_type);
-    }
-
-    if filtered.len() < 3 {
-        let mut filter_string = String::new();
-
-        for react in filtered {
-            filter_string = format!("{}{}", filter_string, react.reaction_type);
-        }
-
-        let content = format!(
-            "\
-                ## ⚠️ balnkbit detectored\n\
-                one or more of the reddit reactions are missing! oh noes!\n\
-                reddit reactions: {}\n\
-                pings: 
-                -# note: this may show up if you're too slow to reddit\
-            ",
-            filter_string
-        );
-        nmsg.reply_ping(&ctx, content)
-            .await
-            .expect("should have been able to send blankbit notifier message");
-        return true;
-    }
-
-    for (i, r) in correct.iter().enumerate() {
-        if *r != filtered[i].reaction_type {
-            let content = format!(
-                "\
-                    ## ⚠️ bleubit detectored!\n\
-                    reddit reactions: {}\n\
-                    -# note: this may show up if your internet is bad\
-                ",
-                filter_string
-            );
-            nmsg.reply_ping(&ctx, content)
-                .await
-                .expect("should have been able to send bluebit notifier message");
-            return true;
-        }
-    }
-
-    false
-}
-
-async fn nullscape_check(ctx: serenity::prelude::Context, msg: poise::serenity_prelude::Message) {
-    let refs = NULLSCAPE_REFERENCES
-        .iter()
-        .filter(|s| msg.content.to_lowercase().contains(*s))
-        .count();
-
-    if refs > 1 {
-        msg.react(
-            ctx,
-            serenity::ReactionType::try_from("<:SubspaceTripmine:1560623715861926030>").unwrap(),
-        )
-        .await
-        .expect("should have been able to react subspace tripmine");
-    }
-}
-
-async fn anti_cablab(ctx: serenity::prelude::Context, msg: poise::serenity_prelude::Message) {
-    let contains_cablab = CABLAB_VARIANTS
-        .iter()
-        .any(|s| msg.content.to_lowercase().contains(s));
-
-    if contains_cablab {
-        msg.react(&ctx, warning!()).await.expect("couldnt react :(");
-    }
-
-    if msg
-        .author
-        .has_role(&ctx, RTOC_GUILD, TBC_ALT_ROLE)
-        .await
-        .expect("error occurred checking roles")
-        && contains_cablab
-    {
-        let mut members = serenity::GuildId::from(RTOC_GUILD)
-            .members_iter(&ctx.http)
-            .boxed();
-
-        while let Some(member) = members.next().await {
-            match member {
-                Ok(mut member) => {
-                    if !member
-                        .user
-                        .has_role(&ctx, RTOC_GUILD, TBC_ALT_ROLE)
-                        .await
-                        .expect("error checking roles")
-                    {
-                        continue;
-                    }
-
-                    let timestamp = serenity::Timestamp::from_unix_timestamp(
-                        serenity::Timestamp::now().unix_timestamp() + 1800,
-                    );
-
-                    match timestamp {
-                        Err(error) => eprintln!("error occurred calculating timestamp: {error}"),
-                        Ok(timestamp) => {
-                            member
-                                .disable_communication_until_datetime(&ctx, timestamp)
-                                .await
-                                .expect("error occurred timing out user");
-                        }
-                    }
-                }
-                Err(error) => eprintln!("error occurred reading members: {error}"),
-            }
-        }
-    }
 }
