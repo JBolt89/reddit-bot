@@ -1,9 +1,8 @@
 use crate::{Context, Error};
 use poise::serenity_prelude::{self as serenity, Mentionable, futures::StreamExt};
 
-use crate::RTOC_GUILD;
+use crate::constants::*;
 
-const CORE_TEAM_ROLE: u64 = 1530912135037587609;
 /// Timeout all members of a role, core team only.
 #[poise::command(slash_command, prefix_command)]
 pub async fn timeout_role(
@@ -23,6 +22,7 @@ pub async fn timeout_role(
                 .ephemeral(true),
         )
         .await?;
+        return Ok(());
     }
 
     ctx.defer().await?;

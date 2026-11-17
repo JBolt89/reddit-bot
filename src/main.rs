@@ -42,7 +42,10 @@ mod event_functions {
 }
 
 mod cablab_variants;
+mod constants;
 mod ns_references;
+
+use crate::constants::*;
 
 #[cfg(test)]
 mod tests;
@@ -61,11 +64,6 @@ def_reaction!(up_arrow!() = "⬆️");
 def_reaction!(down_arrow!() = "⬇️");
 def_reaction!(ques_mark!() = "❓");
 def_reaction!(pickle!() = "🥒");
-
-const RTOC_GUILD: u64 = 1530571157651329054;
-const STARBOARD_BOT: u64 = 655390915325591629;
-const TBC_ALT_ROLE: u64 = 1544982028515282964;
-const PIH_CHANNEL: u64 = 1571059108835106866;
 
 /// User data, which is stored and accessible in all command invocations
 struct Data {
