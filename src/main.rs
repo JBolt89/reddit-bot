@@ -31,6 +31,7 @@ mod commands {
         pub mod gamble;
     }
     pub mod admin {
+        pub mod set_activity;
         pub mod timeout_role;
     }
 }
@@ -56,6 +57,16 @@ macro_rules! def_reaction {
             () => {
                 serenity::ReactionType::Unicode($emoji.to_string())
             };
+        }
+    };
+}
+
+macro_rules! redditmas {
+    () => {
+        serenity::ReactionType::Custom {
+            animated: false,
+            id: serenity::EmojiId::from(1573174461686095892),
+            name: Some("redditmas".to_string()),
         }
     };
 }
@@ -94,6 +105,7 @@ async fn main() {
                 commands::fun::gamble::gamble(),
                 commands::fun::gamble::gamble_seeded(),
                 commands::admin::timeout_role::timeout_role(),
+                commands::admin::set_activity::set_activity(),
             ],
             event_handler: |framework, event| Box::pin(event_handler(framework, event)),
             ..Default::default()
@@ -162,10 +174,12 @@ async fn event_handler(
                 if new_message.author.id == STARBOARD_BOT {
                     tokio::time::sleep(std::time::Duration::from_secs(2)).await;
                     new_message.react(ctx, ques_mark!()).await?;
+                    new_message.react(ctx, redditmas!()).await?;
                 } else {
                     new_message.react(ctx, up_arrow!()).await?;
                     new_message.react(ctx, down_arrow!()).await?;
                     new_message.react(ctx, ques_mark!()).await?;
+                    new_message.react(ctx, redditmas!()).await?;
                 }
             } else {
                 let ctx_clone = ctx.clone();
